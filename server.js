@@ -4,7 +4,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// 🔴 TRACKER: Ye hume batayega game kya maang raha hai!
+// Tracker
 app.use((req, res, next) => {
     console.log("🛑 GAME KI REQUEST AAYI: ", req.originalUrl);
     next();
@@ -28,7 +28,21 @@ app.post('/api/updateUser', (req, res) => {
     res.json({ success: true, message: `UID ${uid} Updated!`, data: usersData[uid] });
 });
 
-// Proxy target
+// 🔥 THE FIX: Game ko yahan se Fake Config milegi!
+app.get('/ver.php', (req, res) => {
+    console.log("✅ FAKE CONFIG BHEJA GAYA!");
+    res.json({
+        "status": "success",
+        "loginAllowed": true,
+        "bypassLogin": true,
+        "unlockAll": true,
+        "resetGuest": true,
+        "playerStats": { "diamonds": 999999, "gold": 999999 },
+        "verAddr": "https://vip-proxy-server.onrender.com/"
+    });
+});
+
+// Proxy target (Baaki sab Garena se load hoga)
 app.use('*', createProxyMiddleware({
     target: 'https://dl.dir.freefiremobile.com/', 
     changeOrigin: true,
