@@ -1,4 +1,5 @@
 const express = require('express');
+const { createProxyMiddleware } = require('http-proxy-middleware');
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -23,25 +24,24 @@ app.post('/api/updateUser', (req, res) => {
     res.json({ success: true, message: `UID ${uid} Updated!`, data: usersData[uid] });
 });
 
-// 3. THE 404 FIX (Catch-All Route)
-// Game koi bhi version file mange, server ye fake data bhej dega
-app.get('*', (req, res) => {
+// 3. REVERSE PROXY (Asli Khel)
+// Agar game config mangega, toh hum apna data denge
+app.get('/config', (req, res) => {
     res.json({
-        "version": "99.99.99",
-        "verAddr": "https://vip-proxy-server.onrender.com/",
         "status": "success",
         "loginAllowed": true,
-        "bypassLogin": true,
-        "unlockAll": true,
-        "resetGuest": true,
-        "playerStats": {
-            "diamonds": 999999,
-            "gold": 999999
-        }
+        "playerStats": { "diamonds": 999999, "gold": 999999 }
     });
 });
 
+// Baaki jo kuch bhi game mangega (Assets, Login, Maps), wo hum Garena ko bhej denge!
+app.use('*', createProxyMiddleware({
+    target: 'https://dl.dir.freefiremobile.com/', // Ye Garena ka asli server link hai
+    changeOrigin: true,
+    logLevel: 'debug'
+}));
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+    console.log(`VIP PROXY is running on port ${PORT}`);
 });
