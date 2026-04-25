@@ -1,12 +1,12 @@
 {
   "name": "ff-admin-panel",
   "version": "1.0.0",
-  "description": "Free Fire Custom Admin Dashboard",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "http-proxy-middleware": "^2.0.6"
   }
 }
