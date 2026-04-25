@@ -1,58 +1,43 @@
 const express = require('express');
 const app = express();
-app.use(express.json()); // JSON data receive karne ke liye
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Ye hamara temporary database hai jahan saari UIDs ka data save hoga
 let usersData = {};
 
-// 1. Dashboard (Web UI) Dikhane ke liye
+// 1. Dashboard (VIP PROXY UI)
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/index.html');
 });
 
-// 2. Dashboard se data SAVE karne ke liye (Save Button)
+// 2. Data Save Karne Ke Liye
 app.post('/api/updateUser', (req, res) => {
     const { uid, isUnlocked, diamonds, gold, level, vBadge } = req.body;
-    
     usersData[uid] = {
-        isUnlocked: isUnlocked === 'true' || isUnlocked === true,
+        isUnlocked: isUnlocked === 'true',
         diamonds: parseInt(diamonds),
         gold: parseInt(gold),
         level: parseInt(level),
-        vBadge: vBadge === 'true' || vBadge === true
+        vBadge: vBadge === 'true'
     };
-    
     res.json({ success: true, message: `UID ${uid} Updated!`, data: usersData[uid] });
 });
 
-// 3. Game jab data maangega (Free Fire Client Config)
-// Game ki file yahan request bhejegi tumhare link par
-app.get('/config/:uid', (req, res) => {
-    const uid = req.params.uid;
-    const user = usersData[uid];
-
-    // Agar UID server par nahi hai ya locked hai
-    if (!user || !user.isUnlocked) {
-        return res.json({
-            "status": "locked",
-            "message": "Unlock your UID and play. Visit dashboard.",
-            "loginAllowed": false
-        });
-    }
-
-    // Agar UID unlocked hai, toh usko fake data bhej do
+// 3. THE 404 FIX (Catch-All Route)
+// Game koi bhi version file mange, server ye fake data bhej dega
+app.get('*', (req, res) => {
     res.json({
+        "version": "99.99.99",
+        "verAddr": "https://vip-proxy-server.onrender.com/",
         "status": "success",
         "loginAllowed": true,
+        "bypassLogin": true,
+        "unlockAll": true,
+        "resetGuest": true,
         "playerStats": {
-            "diamonds": user.diamonds,
-            "gold": user.gold,
-            "level": user.level,
-            "vBadge": user.vBadge
-        },
-        "verAddr": "https://tumhara-asset-server.com/",
-        "unlockAll": true
+            "diamonds": 999999,
+            "gold": 999999
+        }
     });
 });
 
@@ -60,4 +45,3 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
-  
