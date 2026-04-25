@@ -4,14 +4,18 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// 🔴 TRACKER: Ye hume batayega game kya maang raha hai!
+app.use((req, res, next) => {
+    console.log("🛑 GAME KI REQUEST AAYI: ", req.originalUrl);
+    next();
+});
+
 let usersData = {};
 
-// 1. Dashboard (VIP PROXY UI)
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/index.html');
 });
 
-// 2. Data Save Karne Ke Liye
 app.post('/api/updateUser', (req, res) => {
     const { uid, isUnlocked, diamonds, gold, level, vBadge } = req.body;
     usersData[uid] = {
@@ -24,19 +28,9 @@ app.post('/api/updateUser', (req, res) => {
     res.json({ success: true, message: `UID ${uid} Updated!`, data: usersData[uid] });
 });
 
-// 3. REVERSE PROXY (Asli Khel)
-// Agar game config mangega, toh hum apna data denge
-app.get('/config', (req, res) => {
-    res.json({
-        "status": "success",
-        "loginAllowed": true,
-        "playerStats": { "diamonds": 999999, "gold": 999999 }
-    });
-});
-
-// Baaki jo kuch bhi game mangega (Assets, Login, Maps), wo hum Garena ko bhej denge!
+// Proxy target
 app.use('*', createProxyMiddleware({
-    target: 'https://dl.dir.freefiremobile.com/', // Ye Garena ka asli server link hai
+    target: 'https://dl.dir.freefiremobile.com/', 
     changeOrigin: true,
     logLevel: 'debug'
 }));
